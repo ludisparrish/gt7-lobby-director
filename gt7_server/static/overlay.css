@@ -42,15 +42,23 @@ body {
 }
 
 .pilot-position { 
-    width: 40px; 
+    width: 40px; /* Вернули эталонную ширину, чтобы ряд не растягивался */
     height: 100%; 
     background: #e31e24; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     font-weight: bold; 
+    
+    /* 🔥 ГОНОЧНАЯ ПОДГОНКА РАЗМЕРА: */
+    font-size: 11px; /* Сжали до 11px, чтобы DNF встал идеально центрировано */
+    letter-spacing: 0.5px; /* Слегка раздвинули буквы для читаемости на стриме */
+    
     flex-shrink: 0;
+    text-transform: uppercase;
+    box-sizing: border-box;
 }
+
 
 /* 🟪 ТВОЯ КУЛЬТОВАЯ ПЛАШКА ЛК С УЛЬТРА-ПЛАВНЫМ ВЫЕЗДОМ И УДЕРЖАНИЕМ ВЛЕВО */
 .fastest-lap-card {
@@ -153,9 +161,35 @@ body {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
 }
 
+/* ИНТЕРФЕЙС ПРАВОЙ ЗАГЛУШКИ ДЛЯ БЭДЖЕЙ СТАТУСА */
 .pilot-status-placeholder {
     width: 100px;
     height: 100%;
-    margin-left: auto;
+    margin-left: auto; /* Толкает блок в правый край */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
     flex-shrink: 0;
+    transition: all 0.3s ease-in-out; /* Плавное переключение цветов */
 }
+
+/* 🔴 КРАСНЫЙ БЭДЖ ДЛЯ СТАТУСА PIT */
+.pilot-status-placeholder.mode-pit {
+    background: #e31e24 !important;
+    color: white !important;
+}
+
+/* 🟢 ЯРКО-ЗЕЛЕНЫЙ БЭДЖ ДЛЯ СТАТУСА OUT (ДЕРЖИТСЯ 10 СЕКУНД) */
+.pilot-status-placeholder.mode-out {
+    background: #00ff00 !important;
+    color: black !important; /* Черный шрифт для идеального контраста на зеленом */
+}
+
+/* ОБЫЧНЫЙ ТРЕКОВЫЙ РЕЖИМ (ПУСТОТА И ПРОЗРАЧНОСТЬ) */
+.pilot-status-placeholder.mode-delta {
+    background: transparent !important;
+    color: transparent !important;
+}
+

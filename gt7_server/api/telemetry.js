@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { formatMillisecondsToRaceTime } = require('../core/timeInterpreter');
 
+// 🔥 ИМПОРТИРУЕМ МОДУЛЬ ПИТ-СТОПОВ
+const { processServerPitStates } = require('../core/raceEngine');
+
 const DATABASE = {};
 const SESSION_BEST_LAPS = {};
 
@@ -12,7 +15,7 @@ const SERVER_STATE = {
     sc_status: "OFF"
 };
 
-// 📥 ПРИЕМНИК ТЕЛЕМЕТРИИ С MAC
+// 📥 ПРИЕМНИК ПАКЕТОВ С MAC
 router.post('/api/telemetry', (req, res) => {
     const data = req.body || {};
     if (!data || !data.pilot_name) {
@@ -20,42 +23,29 @@ router.post('/api/telemetry', (req, res) => {
     }
 
     const pilot = data.pilot_name;
-    const currentLap = parseInt(data.current_lap) || 0;
-    const pitState = parseInt(data.pit_state) || 2;
-    const pos = data.position || "-";
     const rawLastLapMs = parseInt(data.raw_last_lap_ms) || parseInt(data.last_lap_ms) || 0;
     const rawBestLapMs = parseInt(data.best_lap_ms) || 0;
 
-    if (rawBestLapMs > 0) {
-        SESSION_BEST_LAPS[pilot] = rawBestLapMs;
-    }
-
     DATABASE[pilot] = {
-        position: pos,
-        current_lap: currentLap,
-        pit_state: pitState,
-        last_lap_ms: rawLastLapMs,
-        best_lap_ms: rawBestLapMs,
+        position: data.position || "-",
+        current_lap: data.current_lap || 0,
+        pit_state: parseInt(data.pit_state) || 2, // Намертво фиксируем числом
+        last_lap_ms: rawLastLapMs, 
+        best_lap_ms: rawBestLapMs, 
         last_update: Date.now() / 1000
     };
 
     res.json({ status: "success", sc_status: SERVER_STATE.sc_status });
 });
 
-// 📤 ВЫДАТЧИК ДАННЫХ НА ОВЕРЛЕЙ
+// 📤 ВЫДАТЧИК ДАННЫХ ДЛЯ JS ОВЕРЛЕЯ
 router.get('/api/data', (req, res) => {
     const now = Date.now() / 1000;
     
     const active = {};
-    let hasAnyLiveFinish = false; // Флаг: финишировал ли хоть кто-то в текущей сессии
-
     for (let p in DATABASE) {
         if (now - DATABASE[p].last_update < 6.0) {
             active[p] = DATABASE[p];
-            // 🔥 ЖЕСТКАЯ ПРОВЕРКА: Если у живого пилота на трассе ЛК > 0, значит первый просчет пошел!
-            if (DATABASE[p].best_lap_ms > 0) {
-                hasAnyLiveFinish = true;
-            }
         }
     }
 
@@ -66,11 +56,26 @@ router.get('/api/data', (req, res) => {
     });
 
     const pilotsList = [];
-    sortedPilots.forEach(([pName, pData]) => {
+    let absoluteBestPilot = "";
+    let absoluteBestMs = Infinity;
+
+    sortedPilots.slice(0, 16).forEach(([pName, pData]) => {
         let displayPosition = pData.position;
-        if (displayPosition === 0 || displayPosition === -1 || displayPosition === "0" || displayPosition === "-1") {
-            displayPosition = "-";
+        const numericPos = parseInt(displayPosition);
+
+        if (isNaN(numericPos) || numericPos <= 0) {
+            displayPosition = "DNF";
+        } else {
+            displayPosition = numericPos.toString();
         }
+
+        if (pData.best_lap_ms > 0 && pData.best_lap_ms < absoluteBestMs) {
+            absoluteBestMs = pData.best_lap_ms;
+            absoluteBestPilot = pName;
+        }
+
+        // 🔥 ПРОГОНЯЕМ ПИЛОТА ЧЕРЕЗ НАШ СУДЕЙСКИЙ ДВИЖОК СТАТУСОВ PIT / OUT
+        const pitCalculated = processServerPitStates(pName, pData.pit_state);
 
         pilotsList.push({
             pilot_name: pName,
@@ -78,24 +83,18 @@ router.get('/api/data', (req, res) => {
             current_lap: pData.current_lap,
             best_lap: formatMillisecondsToRaceTime(pData.best_lap_ms), 
             lap_time: formatMillisecondsToRaceTime(pData.last_lap_ms), 
-            ui_mode: "DELTA"
+            
+            // Отдаем на фронтенд рассчитанные движком бэджи
+            ui_mode: pitCalculated.ui_mode,     // Статус: "PIT", "OUT" или "DELTA"
+            badge_text: pitCalculated.badge_text // Текст: "PIT", "OUT" или ""
         });
     });
 
-    // Расчет абсолютного ЛК лобби
-    let absoluteBestPilot = "";
-    let absoluteBestTimeStr = "0:00.000";
     let showFlBanner = false;
+    let absoluteBestTimeStr = "0:00.000";
 
-    const validLaps = Object.entries(SESSION_BEST_LAPS).filter(([_, ms]) => ms > 0);
-    
-    // 🔥 СУДЕЙСКИЙ ФИКС: Плашка может включиться ТОЛЬКО если в лобби зафиксирован ХОТЯ БЫ ОДИН ЖИВОЙ ФИНИШ!
-    if (validLaps.length > 0 && hasAnyLiveFinish) {
-        validLaps.sort((a, b) => a - b);
-        const [bestPilotName, bestMsValue] = validLaps;
-        
-        absoluteBestPilot = bestPilotName;
-        absoluteBestTimeStr = formatMillisecondsToRaceTime(bestMsValue);
+    if (pilotsList.length > 0 && absoluteBestPilot !== "" && absoluteBestMs !== Infinity) {
+        absoluteBestTimeStr = formatMillisecondsToRaceTime(absoluteBestMs);
         showFlBanner = true;
     }
 
@@ -114,3 +113,4 @@ router.get('/api/data', (req, res) => {
 });
 
 module.exports = router;
+
