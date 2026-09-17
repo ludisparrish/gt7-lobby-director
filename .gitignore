@@ -1,0 +1,30 @@
+# ==========================================
+# 🏎️ SRO GT7 PROJECT — GIT IGNORE CONFIG
+# ==========================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+.venv/
+venv/
+ENV/
+env/
+
+build/
+dist/
+*.spec
+GT7_League_Launcher.spec
+client.spec
+
+config.json
+race_state.json
+
+*.log
+server.log
+
+.DS_Store
+.DS_Store?
+._*
+Thum*.db
+Desktop.ini

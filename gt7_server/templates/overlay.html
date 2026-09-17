@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>GT7 Stream Overlay — SRO Systems</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: transparent;
+            font-family: 'Arial Black', sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+
+        .hud-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 620px; /* Увеличили ширину, чтобы всё в ряд идеально влезало */
+        }
+
+        .hud-header {
+            display: flex;
+            width: 100%;
+            background: rgba(15, 15, 15, 0.95);
+            border-left: 6px solid #e31e24;
+            margin-bottom: 8px;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+        .track-name { padding: 10px 15px; background: #e31e24; min-width: 100px; text-align: center; }
+        .laps-counter { padding: 10px 15px; flex-grow: 1; text-align: right; font-weight: bold; text-transform: uppercase; }
+
+        .leaderboard { display: flex; flex-direction: column; gap: 5px; width: 100%; margin-bottom: 12px; }
+        
+        /* ТВОЯ НОВАЯ СТРОКА ПИЛОТА В ОДИН РЯД */
+        .pilot-card { 
+            display: flex; 
+            align-items: center; 
+            background: rgba(25, 25, 25, 0.9); 
+            height: 38px; 
+            font-size: 16px; 
+            transition: all 0.3s ease;
+        }
+        .pilot-position { 
+            width: 40px; 
+            height: 100%; 
+            background: #e31e24; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            flex-shrink: 0;
+        }
+        .pilot-name { 
+            padding-left: 12px; 
+            text-transform: uppercase; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            width: 200px; /* Фиксируем ширину под имя пилота и бортовой номер */
+            flex-shrink: 0;
+        }
+
+        /* КОЛОНКА ВРЕМЕНИ КРУГА */
+        .pilot-laptime {
+            width: 110px;
+            text-align: center;
+            color: #ff9900;
+            font-weight: bold;
+            border-left: 1px solid #444444;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* КОЛОНКА ТАЙМЕРА ПИТ-СТОПА */
+        .pilot-pittime {
+            width: 100px;
+            text-align: center;
+            color: #ffff00;
+            font-weight: bold;
+            border-left: 1px solid #444444;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* КРАЙНИЙ ПРАВЫЙ БЭДЖ ТЕКУЩЕГО СТАТУСА */
+        .pilot-badge { 
+            width: 100px; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 13px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            flex-shrink: 0;
+            margin-left: auto; /* Жестко толкает бэдж статуса в самый край */
+        }
+        
+        .badge-delta { background: rgba(50, 50, 50, 0.5); color: #aaaaaa; }
+        .badge-box { background: #cc9900; color: white; }
+        .badge-track { background: #2b8a3e; color: white; }
+        .badge-afk { background: #444444; color: #888888; }
+
+        #sc-alert-banner { position: fixed; top: 20px; left: 660px; padding: 12px 25px; font-size: 20px; font-weight: bold; text-transform: uppercase; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+
+        .fastest-lap-banner { display: none; align-items: center; background: rgba(20, 20, 20, 0.95); border-left: 8px solid #9400d3; height: 44px; width: 100%; box-shadow: 0 6px 20px rgba(148,0,211,0.25); font-size: 16px; }
+        .fl-tag { background: #9400d3; color: white; font-weight: bold; padding: 0 15px; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .fl-pilot-info { flex-grow: 1; padding-left: 15px; font-weight: bold; text-transform: uppercase; }
+        .fl-time-clock { padding-right: 20px; color: #00ffff; font-weight: bold; font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <div class="hud-wrapper">
+        <div class="hud-header">
+            <div class="track-name" id="track-display">--</div>
+            <div class="laps-counter" id="laps-display">PRACTICE</div>
+        </div>
+
+        <div class="leaderboard" id="leaderboard-grid"></div>
+
+        <div class="fastest-lap-banner" id="fl-trigger-box">
+            <div class="fl-tag">FL</div>
+            <div class="fl-pilot-info" id="fl-driver-text">PILOT #00</div>
+            <div class="fl-time-clock" id="fl-clock-text">0:00.000</div>
+        </div>
+    </div>
+
+    <div id="sc-alert-banner"></div>
+    <script>
+        async function refreshOverlayHUD() {
+            try {
+                let res = await fetch('/api/data?t=' + Date.now());
+                if (!res.ok) return;
+                let data = await res.json();
+
+                // 1. Синхронизируем название трека
+                document.getElementById('track-display').innerText = data.track_name || "TRACK";
+
+                // 2. Отображение режимов сессии в шапке оверлея
+                let lapsDisplay = document.getElementById('laps-display');
+                if (data.session_mode === 'PRACTICE') {
+                    lapsDisplay.innerText = "PRACTICE";
+                    lapsDisplay.style.backgroundColor = "#0056b3"; lapsDisplay.style.color = "#ffffff";
+                } else if (data.session_mode === 'QUALIFY') {
+                    lapsDisplay.innerText = "QUALI";
+                    lapsDisplay.style.backgroundColor = "#008b8b"; lapsDisplay.style.color = "#00ffff";
+                } else {
+                    let currentRaceLap = (data.pilots && data.pilots.length > 0) ? data.pilots.current_lap : 1;
+                    lapsDisplay.innerText = `LAP ${currentRaceLap} / ${data.total_laps}`;
+                    lapsDisplay.style.backgroundColor = "transparent"; lapsDisplay.style.color = "#ffffff";
+                }
+
+                // 3. Контроль судейских флагов Safety Car
+                let scBanner = document.getElementById('sc-alert-banner');
+                if (data.sc_status === 'ON') {
+                    scBanner.innerText = "⚠️ SAFETY CAR: СБАВЬТЕ СКОРОСТЬ!"; scBanner.style.background = "#cc9900"; scBanner.style.color = "black"; scBanner.style.display = "block";
+                } else if (data.sc_status === 'CLEAR') {
+                    scBanner.innerText = "✅ VSC CLEAR: GREEN FLAG"; scBanner.style.background = "#2b8a3e"; scBanner.style.color = "white"; scBanner.style.display = "block";
+                } else { scBanner.style.display = "none"; }
+
+                // 4. 🟣 КОНТРОЛЬ ФИОЛЕТОВОГО БАННЕРА FASTEST LAP
+                let flBanner = document.getElementById('fl-trigger-box');
+                if (data.fastest_lap && data.fastest_lap.show_banner) {
+                    let pName = data.fastest_lap.pilot_name || "PILOT";
+                    let pCar = data.fastest_lap.car_number || "00";
+                    document.getElementById('fl-driver-text').innerText = pName.includes("#") ? pName : `${pName} #${pCar}`;
+                    document.getElementById('fl-clock-text').innerText = data.fastest_lap.time;
+                    flBanner.style.display = "flex";
+                } else { flBanner.style.display = "none"; }
+
+                // 5. ДИНАМИЧЕСКИЙ РЕНДЕРИНГ ТАБЛИЦЫ ЛИДЕРОВ СТРИМА
+                let grid = document.getElementById('leaderboard-grid');
+                if (!data.pilots || data.pilots.length === 0) { 
+                    grid.innerHTML = ""; 
+                    return; 
+                }
+
+                let htmlBuffer = "";
+                data.pilots.forEach((driver) => {
+                    let badgeClass = "badge-delta";
+                    let badgeText = "TRACK"; 
+                    
+                    // 🔥 ЖЕСТКИЙ ФИКС ТАЙМЕРА ПИТА: Забираем готовую строку времени из race_engine.py
+                    let pitClockText = driver.pit_clock || "";
+                    
+                    // Фильтруем вывод бэджей статуса по режимам сервера
+                    if (driver.ui_mode === "DELTA") {
+                        badgeClass = "badge-delta";
+                        badgeText = "TRACK";
+                    } else if (driver.ui_mode === "IN_BOX") { 
+                        badgeClass = "badge-box"; 
+                        badgeText = "PIT"; 
+                    } else if (driver.ui_mode === "ON_TRACK") { 
+                        badgeClass = "badge-track"; 
+                        badgeText = "TRACK"; 
+                    } else if (driver.ui_mode === "AFK") {
+                        badgeClass = "badge-afk";
+                        badgeText = "AFK";
+                        pitClockText = "";
+                    }
+
+                    // ОТРИСОВКА ОВЕРЛЕЯ СТРОГО В ТВОЙ ГОРИЗОНТАЛЬНЫЙ РЯД:
+                    // [Позиция] Имя Пилота Номер | время круга | время пита | статус
+                    htmlBuffer += `
+                        <div class="pilot-card" style="${driver.ui_mode === 'AFK' ? 'opacity: 0.35;' : ''}">
+                            <div class="pilot-position">${driver.position}</div>
+                            <div class="pilot-name">${driver.pilot_name}</div>
+                            <div class="pilot-laptime">${driver.best_lap || "0:00.000"}</div>
+                            <div class="pilot-pittime">${pitClockText}</div>
+                            <div class="pilot-badge ${badgeClass}">${badgeText}</div>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = htmlBuffer;
+
+            } catch (err) { 
+                console.error("Сбой JS-ядра оверлея:", err); 
+            }
+        }
+
+        // Тикаем каждые 250мс для идеальной гоночной плавности
+        setInterval(refreshOverlayHUD, 250);
+        window.onload = refreshOverlayHUD;
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
