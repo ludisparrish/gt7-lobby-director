@@ -8,9 +8,6 @@ from PyQt6.QtCore import pyqtSignal, Qt, QUrl
 from PyQt6.QtGui import QIcon
 
 # ИМПОРТИРУЕМ РОДНЫЕ МУЛЬТИМЕДИЙНЫЕ МОДУЛИ И БРАУЗЕРНЫЙ ДВИЖОК CHROMIUM ОТ QT6
-from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
-from PyQt6.QtWebEngineCore import QWebEngineProfile
-from PyQt6.QtWebEngineWidgets import QWebEngineView
 
 # Импортируем наши изолированные фоновые потоки связи
 from modules.network_worker import HTTPPublishWorker, SERVER_URL
