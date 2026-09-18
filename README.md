@@ -23,48 +23,6 @@ The project is split into two independent nodes that communicate seamlessly via 
 *   **⚠️ Virtual Safety Car (VSC) Workflow:** A complete race control automation system. The commentator or race steward can trigger the `SC ON` mode with a single button from the split-screen admin panel. Drivers are instantly notified on the portal or launcher and must comply with the league's speed regulation. Cleared or disabled states (`CLEAR` / `OFF`) are also fully controlled via the panel.
 *   **🛑 AFK & Disconnect Detector:** If a driver is stuck in the garage for more than 120 seconds or the console returns a hard exit code (`pit_state == -1`), the overlay natively dims the driver's row opacity and displays a grey `AFK` status badge.
 
----
-
-## 📂 Project Structure
-
-```text
-gt7_race_control/
-├── app.py                  # Main Flask backend dispatcher (Runs on VPS)
-├── core/
-│   └── race_engine.py      # Timing calculations, pit lane dampening & AFK logic
-├── api/
-│   └── telemetry_routes.py # Blueprint API endpoints for UDP payloads & admin actions
-├── templates/
-│   ├── index.html          # Main league launcher page with live connected pilots counter
-│   ├── admin.html          # Dual-panel neon admin dashboard with split-screen monitoring
-│   └── overlay.html        # Transparent stream interface HUD for OBS studio
-├── modules/                # Native Mac Launcher modules (PyQt6 client)
-│   ├── best_lap_manager.py # Local lap timing manager and session reset hook
-│   ├── packet_parser.py    # Hardware offset normalizer (0x74, 0x7C telemetry mapping)
-│   ├── telemetry_worker.py # Background UDP worker reading console data sockets
-│   ├── network_worker.py   # Network worker pushing JSON payloads to VPS via secure .get()
-│   └── ui_window.py        # PyQt6 GUI window for the commentator's control deck
-├── main.py                 # Main entry point to run the launcher app on Mac
-└── .gitignore              # Ignores __pycache__, local .venv, PyInstaller build/dist & logs
-```
 
 ---
-
-## 🛠️ Deployment Guide
-
-### 1. Running the Backend on VPS:
-Install dependencies (`Flask`) and fire up the web server in background mode on your designated racing port `8000`:
-```bash
-pkill -f app.py
-fuser -k 8000/tcp
-nohup python3 app.py > server.log 2>&1 &
-```
-
-### 2. Launching the Client on Mac:
-Ensure `PyQt6` is installed on your local environment, specify your PlayStation 5 console's local IP address inside the worker, and run the control deck:
-```bash
-python3 main.py
-```
-
----
-⭐ **SRO Systems Active. Engineered explicitly for the competitive racing championships of the FAL LMF league.**
+⭐ **SRO Systems Active. Engineered explicitly for the competitive racing championships of the ФАЛ / LMF league.**

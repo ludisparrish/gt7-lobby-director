@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ФАЛ КОНТРОЛЬ by НИЦ НАКАКАЛ</title>
+    <!-- 🔥 ИЗОЛИРОВАННЫЙ ИМПОРТ СТИЛЕЙ С ЗАЩИТОЙ ОТ КЭША БРАУЗЕРА -->
+    <script>
+        document.write('<link rel="stylesheet" href="/static/index.css?v=' + Date.now() + '">');
+    </script>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <h1>LMF / ФАЛ </h1>
+        <div class="subtitle">Express Telemetry Hub</div>
+
+        <!-- Неоновый блок счётчика подключений -->
+        <div class="counter-box">
+            <div class="counter-title">Подключено пилотов в лобби</div>
+            <div class="counter-value" id="live-pilots-count">0</div>
+        </div>
+
+        <!-- Меню навигации командного мостика лиги -->
+        <div class="buttons-grid">
+            <a href="/overlay" class="btn-control btn-overlay">📺 Открыть Оверлей</a>
+            <a href="/admin" class="btn-control btn-admin">🛠️ Пульт Админки</a>
+            <a href="/vsc" class="btn-control btn-vsc">🟪 Режим VSC</a>
+        </div>
+    </div>
+
+    <!-- 🔮 АСИНХРОННЫЙ ЖИВОЙ СЧЁТЧИК ОНЛАЙНА БЕЗ ПЕРЕЗАГРУЗКИ СТРАНИЦЫ -->
+    <script>
+        async function updateLiveCounter() {
+            try {
+                // Опрашиваем наше готовое Express JSON-ядро данных
+                let res = await fetch('/api/data?t=' + Date.now());
+                if (!res.ok) return;
+                let data = await res.json();
+
+                // Считаем размер массива pilots, который вернул сервер Node.js
+                let count = 0;
+                if (data.pilots && Array.isArray(data.pilots)) {
+                    count = data.pilots.length;
+                }
+
+                // Выводим цифру в неоновый блок
+                document.getElementById('live-pilots-count').innerText = count;
+
+            } catch (err) {
+                console.error("Сбой обновления счётчика главной страницы:", err);
+            }
+        }
+
+        // Обновляем счётчик каждую секунду
+        setInterval(updateLiveCounter, 1000);
+        window.onload = updateLiveCounter;
+    </script>
+</body>
+</html>

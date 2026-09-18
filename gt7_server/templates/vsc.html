@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <!-- Мега-важный тег viewport для идеального масштабирования на экранах смартфонов! -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ФАЛ КОНТРОЛЬ by НИЦ НАКАКАЛ</title>
+    <script>
+        document.write('<link rel="stylesheet" href="/static/vsc.css?v=' + Date.now() + '">');
+    </script>
+</head>
+<body>
+
+    <div class="vsc-mobile-wrapper">
+        
+        <!-- 🟨 ВЕРХНЯЯ ЧАСТЬ 70%: КНОПКА АКТИВАЦИИ -->
+        <div class="vsc-touch-section">
+            <button id="vsc-trigger-btn" class="btn-giant-trigger" onclick="triggerVscOn()">
+                ⚠️ ЖЕЛТЫЙ ФЛАГ<br><span style="font-size: 18px;">VSC ON</span>
+            </button>
+        </div>
+
+        <!-- 📟 НИЖНЯЯ ЧАСТЬ 30%: КАНАЛ СВЯЗИ С МОСТИКОМ -->
+        <div class="vsc-info-section">
+            <div class="info-title">СТАТУС ТРАССЫ SRO SERVER</div>
+            <div id="info-status-text" class="info-status-value">TRACK CLEAR</div>
+        </div>
+
+    </div>
+
+    <!-- ВШИВАЕМ КЛИЕНТСКИЙ СКРИПТ SOCKET.IO ДЛЯ МОМЕНТАЛЬНОЙ СВЯЗИ -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io(); // Открываем живой сокет-коннект с VPS
+        
+        const mainButton = document.getElementById('vsc-trigger-btn');
+        const statusText = document.getElementById('info-status-text');
+
+        // 🔥 КЛИК ПО ЖЕЛТОЙ КНОПКЕ (70% экрана): Мгновенно пуляем VSC ON и блокируем её!
+        function triggerVscOn() {
+            // 1. Отправляем сокет-сигнал на сервер
+            socket.emit('admin-sc-command', 'VSC ON');
+            
+            // 2. Насильно делаем серыми и блокируем клики, как ты просил!
+            mainButton.disabled = true;
+            mainButton.innerHTML = "🔒 ФЛАГ ЗАБЛОКИРОВАН<br><span style='font-size: 14px;'>Ожидание отмены с админки...</span>";
+        }
+
+        // 🔥 ЛOВИМ СOКЕТ-ОТВЕТЫ ОТ СЕРВЕРА (СИНХРОНИЗАЦИЯ С ГЛАВНОЙ АДМИНКОЙ):
+        socket.on('server-sc-broadcast', (status) => {
+            
+            if (status === "VSC ON") {
+                statusText.innerText = "VSC INCIDENT ACTIVE";
+                statusText.className = "info-status-value status-alert-active";
+                
+                // На случай если пульт открыли на втором телефоне, когда VSC уже шел — блокируем кнопку
+                mainButton.disabled = true;
+                mainButton.innerHTML = "🔒 ФЛАГ ЗАБЛОКИРОВАН<br><span style='font-size: 14px;'>Ожидание отмены с админки...</span>";
+            } 
+            
+            // 🟩 КОГДА НА АДМИНКЕ НАЖМУТ VSC OFF — КНОПКА СНОВА СТАНОВИТСЯ ЖЕЛТОЙ И АКТИВНОЙ!
+            else if (status === "VSC OFF") {
+                statusText.innerText = "VSC ENDING / RESTART";
+                statusText.className = "info-status-value status-alert-ending";
+                
+                // Разблокируем кнопку обратно под гоночный желтый цвет!
+                mainButton.disabled = false;
+                mainButton.innerHTML = "⚠️ ЖЕЛТЫЙ ФЛАГ<br><span style='font-size: 18px;'>VSC ON</span>";
+            } 
+            
+            // ЕСЛИ НАЖАЛИ СБРОС (CLEAR ALERT)
+            else {
+                statusText.innerText = "TRACK CLEAR";
+                statusText.className = "info-status-value status-alert-clear";
+                
+                mainButton.disabled = false;
+                mainButton.innerHTML = "⚠️ ЖЕЛТЫЙ ФЛАГ<br><span style='font-size: 18px;'>VSC ON</span>";
+            }
+        });
+    </script>
+</body>
+</html>

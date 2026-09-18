@@ -1,6 +1,6 @@
-/* ==========================================
-   🏎️ SRO GT7 STREAM OVERLAY — SMOOTH ANIMATED CSS
-   ========================================== */
+/* ====================================================================
+   🏎️ SRO GT7 STREAM OVERLAY — ULTRA-SMOOTH ANIMATION CSS MODULE
+   ==================================================================== */
 
 body {
     margin: 0;
@@ -9,15 +9,18 @@ body {
     font-family: 'Arial Black', sans-serif;
     color: white;
     overflow: hidden;
+    /* Включаем сглаживание шрифтов для идеального рендеринга в OBS */
+    -webkit-font-smoothing: antialiased;
 }
 
 .hud-wrapper {
     display: flex;
     flex-direction: column;
     width: 640px; 
-    align-items: flex-start; /* Намертво прижали весь HUD влево */
+    align-items: flex-start;
 }
 
+/* СТАТУСНАЯ ШАПКА С ПЛАВНЫМ ИЗМЕНЕНИЕМ РАЗМЕРОВ */
 .hud-header {
     display: flex;
     width: 100%;
@@ -26,12 +29,39 @@ body {
     margin-bottom: 8px;
     font-size: 18px;
     text-transform: uppercase;
+    box-sizing: border-box;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.track-name { padding: 10px 15px; background: #e31e24; min-width: 100px; text-align: center; }
-.laps-counter { padding: 10px 15px; flex-grow: 1; text-align: right; font-weight: bold; }
 
-.leaderboard { display: flex; flex-direction: column; gap: 5px; width: 100%; margin-bottom: 12px; }
+/* Элементы текста внутри шапки с эффектом плавного растворения */
+.track-name, .laps-counter {
+    transition: opacity 0.3s ease-in-out, color 0.3s ease-in-out;
+}
 
+.track-name { 
+    padding: 10px 15px; 
+    background: #e31e24; 
+    min-width: 100px; 
+    text-align: center; 
+}
+.laps-counter { 
+    padding: 10px 15px; 
+    flex-grow: 1; 
+    text-align: right; 
+    font-weight: bold; 
+}
+
+/* ТУРНИРНАЯ СЕТКА С ПОДДЕРЖКОЙ АНИМАЦИИ ПЕРЕМЕЩЕНИЯ (Flex/Grid Smooth) */
+.leaderboard { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 5px; 
+    width: 100%; 
+    margin-bottom: 12px;
+    position: relative;
+}
+
+/* 🏎️ КАРТОЧКА ПИЛОТА С ПЛАВНЫМ ПОЯВЛЕНИЕМ И СДВИГОМ */
 .pilot-card { 
     display: flex; 
     align-items: center; 
@@ -39,90 +69,34 @@ body {
     height: 38px; 
     font-size: 16px; 
     width: 100%;
+    box-sizing: border-box;
+    
+    /* Эффект плавного проявления карточки при входе в лобби */
+    opacity: 1;
+    transform: translateY(0);
+    
+    /* Тотальный Transition на любые изменения структуры (цвета, позиций, высоты) */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pilot-position { 
-    width: 40px; /* Вернули эталонную ширину, чтобы ряд не растягивался */
+    width: 40px; 
     height: 100%; 
     background: #e31e24; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     font-weight: bold; 
-    
-    /* 🔥 ГОНОЧНАЯ ПОДГОНКА РАЗМЕРА: */
-    font-size: 11px; /* Сжали до 11px, чтобы DNF встал идеально центрировано */
-    letter-spacing: 0.5px; /* Слегка раздвинули буквы для читаемости на стриме */
-    
+    font-size: 11px; 
+    letter-spacing: 0.5px; 
     flex-shrink: 0;
     text-transform: uppercase;
     box-sizing: border-box;
+    /* Плавная смена цифр/букв места пилота (например DNF на P1) */
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
-
-/* 🟪 ТВОЯ КУЛЬТОВАЯ ПЛАШКА ЛК С УЛЬТРА-ПЛАВНЫМ ВЫЕЗДОМ И УДЕРЖАНИЕМ ВЛЕВО */
-.fastest-lap-card {
-    display: flex; /* Всегда флекс, чтобы внутренности не ломались в столбик! */
-    align-items: center;
-    justify-content: flex-start; /* Жёстко выравниваем контент влево */
-    background: linear-gradient(to right, rgba(15, 15, 15, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%) !important; 
-    
-    border-left: 4px solid #9400d3; 
-    box-sizing: border-box;
-    width: 100%;
-    
-    /* 🔮 ГОНОЧНЫЙ ЗАМОК АНИМАЦИИ: Изначально плашка схлопнута, прозрачна и невидима */
-    height: 0px;
-    opacity: 0;
-    margin-top: 0px;
-    overflow: hidden;
-    
-    /* Плавный триггер раскрытия по воздуху за 0.6 секунды с красивым гоночным замедлением */
-    transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
-                opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
-                margin-top 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 🔥 ЭТОТ КЛАСС АВТОМАТИЧЕСКИ ВКЛЮЧИТСЯ В JS И ПЛАВНО РАСКРОЕТ ПЛАШКУ НА ТРАССЕ ВЛЕВО */
-/* 🟪 ТВОЯ ИСПРАВЛЕННАЯ ПЛАШКА ЛК: ТЕПЕРЬ НАГЛУХО СКРЫТА ИЗ ОВЕРЛЕЯ С ЗАВОДА */
-.fastest-lap-card {
-    display: none; /* 🔥 ЖЕСТКИЙ ФИКС: Элемент физически полностью вырезан и скрыт до первого ЛК! */
-    align-items: center;
-    justify-content: flex-start; 
-    background: linear-gradient(to right, rgba(15, 15, 15, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%) !important; 
-    
-    border-left: 4px solid #9400d3; 
-    box-sizing: border-box;
-    width: 100%;
-    
-    /* Параметры для будущей плавной анимации проявления */
-    height: 38px;
-    opacity: 0;
-    margin-top: 10px;
-    overflow: hidden;
-    transition: opacity 0.5s ease-in-out; /* Плавное появление из прозрачности */
-}
-
-/* 🔥 ЭТОТ КЛАСС АВТОМАТИЧЕСКИ ВКЛЮЧИТСЯ В JS И ФИЗИЧЕСКИ ВРУБИТ ФЛЕКС-РЯД И ПРОЗРАЧНОСТЬ */
-.fastest-lap-card.visible {
-    display: flex !important; /* Включаем элемент в разметку */
-    opacity: 1 !important;    /* Делаем его полностью видимым */
-}
-
-
-.fl-badge {
-    width: 40px;
-    height: 38px; /* Фиксированная высота в тон строки */
-    background: #9400d3 !important; 
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 14px;
-    flex-shrink: 0;
-    color: white;
-}
-
+/* СИНХРОНИЗИРОВАННЫЕ КОЛОНКИ СТРОК (Плавный перелив таймингов) */
 .pilot-name { 
     padding-left: 12px; 
     text-transform: uppercase; 
@@ -132,7 +106,8 @@ body {
     width: 180px; 
     flex-shrink: 0;
     text-align: left;
-    color: white;
+    color: white; 
+    transition: color 0.3s ease;
 }
 
 .pilot-car-number {
@@ -141,6 +116,7 @@ body {
     font-weight: bold;
     text-align: center;
     flex-shrink: 0;
+    transition: color 0.3s ease;
 }
 
 .pilot-laptime {
@@ -154,42 +130,88 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    transition: all 0.3s ease;
 }
 
-.fl-time-highlight {
-    color: #ff9900 !important; 
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-}
-
-/* ИНТЕРФЕЙС ПРАВОЙ ЗАГЛУШКИ ДЛЯ БЭДЖЕЙ СТАТУСА */
+/* ПРАВАЯ ЗАГЛУШКА БЭДЖЕЙ СТАТУСА PIT / OUT */
 .pilot-status-placeholder {
     width: 100px;
     height: 100%;
-    margin-left: auto; /* Толкает блок в правый край */
+    margin-left: auto; 
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
     font-size: 14px;
     flex-shrink: 0;
-    transition: all 0.3s ease-in-out; /* Плавное переключение цветов */
+    
+    /* Сверх-плавный въезд цвета флага маршала */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 🔴 КРАСНЫЙ БЭДЖ ДЛЯ СТАТУСА PIT */
+/* 🔴 КРАСНЫЙ БЭДЖ PIT */
 .pilot-status-placeholder.mode-pit {
     background: #e31e24 !important;
     color: white !important;
 }
 
-/* 🟢 ЯРКО-ЗЕЛЕНЫЙ БЭДЖ ДЛЯ СТАТУСА OUT (ДЕРЖИТСЯ 10 СЕКУНД) */
+/* 🟢 ЯРКО-ЗЕЛЕНЫЙ БЭДЖ OUT */
 .pilot-status-placeholder.mode-out {
     background: #00ff00 !important;
-    color: black !important; /* Черный шрифт для идеального контраста на зеленом */
+    color: black !important; 
 }
 
-/* ОБЫЧНЫЙ ТРЕКОВЫЙ РЕЖИМ (ПУСТОТА И ПРОЗРАЧНОСТЬ) */
+/* ОБЫЧНЫЙ ТРЕКОВЫЙ РЕЖИМ (ПРОЗРАЧНОСТЬ) */
 .pilot-status-placeholder.mode-delta {
     background: transparent !important;
     color: transparent !important;
 }
 
+/* 👑 ПЛАШКА FASTEST LAP С АППАРАТНЫМ СДВИГОМ КИНЕМАТОГРАФИЧНОГО УРОВНЯ */
+.fastest-lap-card {
+    display: flex !important; /* Убираем display: none, анимация будет идти через высоту и прозрачность! */
+    align-items: center;
+    justify-content: flex-start; 
+    background: linear-gradient(to right, rgba(15, 15, 15, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%) !important; 
+    
+    /* Изначально полностью схлопнута по высоте и невидима */
+    height: 0px;
+    opacity: 0;
+    margin-top: 0px;
+    transform: scaleY(0.8);
+    overflow: hidden;
+    border-left: 4px solid #9400d3; 
+    box-sizing: border-box;
+    
+    /* Эффект выплывания: меняем высоту, прозрачность и слегка масштабируем для сочности */
+    transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-top 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Класс активации рекорда сессии */
+.fastest-lap-card.visible {
+    height: 38px !important;
+    opacity: 1 !important;    
+    margin-top: 10px !important;
+    transform: scaleY(1) !important;
+}
+
+.fl-badge {
+    width: 40px;
+    height: 100%;
+    background: #9400d3 !important; 
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    flex-shrink: 0;
+    color: white;
+}
+
+.fl-time-highlight {
+    color: #ff9900 !important; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); 
+}

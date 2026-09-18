@@ -2,31 +2,78 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>SRO GT7 Stream Overlay</title>
-    <!-- Подтягиваем наши изолированные CSS стили -->
-    <link rel="stylesheet" href="/static/overlay.css">
+    <title>ФАЛ КОНТРОЛЬ by НИЦ НАКАКАЛ</title>
+    <!-- 🔥 СУДЕЙСКИЙ ФИКС КЭША CSS: Врезаем динамический таймстамп, чтобы OBS мгновенно подтягивал новые плавные стили! -->
+    <script>
+        document.write('<link rel="stylesheet" href="/static/overlay.css?v=' + Date.now() + '">');
+    </script>
 </head>
 <body>
 
     <div class="hud-wrapper">
-        <!-- СТАТУСНАЯ ШАПКА ТРЕКА -->
+        <!-- СТАТУСНАЯ ШАПКА ТРЕКА (С поддержкой плавного растворения букв) -->
         <div class="hud-header">
             <div class="track-name" id="track-display">--</div>
             <div class="laps-counter" id="laps-display">PRACTICE</div>
         </div>
 
-        <!-- ТУРНИРНАЯ СЕТКА ПИЛОТОВ -->
+        <!-- 🔥 ЖЕСТКОЕ ГОНОЧНОЕ ГНЕЗДО ДЛЯ VSC БАННЕРА F1 -->
+        <!-- Плашка физически вшита МЕЖДУ шапкой и пилотами, ожидая сокет-сигнал клика! -->
+        <div id="sro-f1-vsc-wrapper" class="sro-f1-vsc-container">
+            <div class="f1-vsc-top-row" id="f1-vsc-top-text"></div>
+            <div class="f1-vsc-bottom-row" id="vsc-bottom-text"></div>
+        </div>
+
+        <!-- ТУРНИРНАЯ СЕТКА ПИЛОТОВ (Сюда JS-ядро рендерит строки сверху вниз) -->
         <div class="leaderboard" id="leaderboard-grid"></div>
 
-        <!-- 👑 ШАБЛОН ГРАДИЕНТНОЙ ПЛАШКИ [ЛК] (Изначально пустая, собирается внутри JS модуля) -->
+        <!-- ШАБЛОН ГРАДИЕНТНОЙ ПЛАШКИ [ЛК] (Разворачивается и плавно выплывает по ходу гонки) -->
         <div class="fastest-lap-card" id="fl-card-block"></div>
     </div>
 
-    <!-- 🔥 МОЩНЫЙ СУДЕЙСКИЙ ФИКС КЭША: Врезаем динамический таймстамп прямо в ссылку подключения модуля! -->
+    <!-- 🔥 ПОДКЛЮЧАЕМ КЛИЕНТСКИЙ СКРИПТ SOCKET.IO В ОВЕРЛЕЙ ДЛЯ ТРАНСЛЯЦИЙ -->
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        // Открываем постоянное ухо сокет-коннекта с сервером VPS
+        const socket = io();
+
+        // 1. ЛOВИМ СOКЕТ-СИГНАЛЫ МАРШАЛOВ SAFETY CAR (СТИЛЬ F1)
+        socket.on('server-sc-broadcast', (status) => {
+            if (typeof window.triggerF1Alert === "function") {
+                // Тупо по клику из админки вызываем элемент оверлея пиксель в пиксель!
+                window.triggerF1Alert(status);
+            }
+        });
+
+        // 2. 🔥 ЛOВИМ СOКЕТ-СИГНАЛЫ УЛЬТРА-ПЛАВНОЙ СМЕНЫ РЕЖИМOВ СЕССИИ:
+        socket.on('server-mode-broadcast', (mode) => {
+            // Вызываем наш плавный переключатель текста из overlay.js, который гасит буквы в ноль
+            if (typeof window.smoothSetText === "function") {
+                if (mode === "PRACTICE") {
+                    window.smoothSetText('laps-display', 'PRACTICE');
+                } else if (mode === "QUALI") {
+                    window.smoothSetText('laps-display', 'QUALI');
+                }
+            } else {
+                // Резервный вариант прямой подмены, если модули еще не связались в DOM
+                let displayElement = document.getElementById('laps-display');
+                if (displayElement) {
+                    if (mode === "PRACTICE") displayElement.innerText = "PRACTICE";
+                    if (mode === "QUALI") displayElement.innerText = "QUALI";
+                }
+            }
+        });
+    </script>
+
+    <!-- 🔥 ПОДКЛЮЧАЕМ НАШИ ИЗОЛИРОВАННЫЕ JS-МОДУЛИ СУДЕЙСКОЙ ГРАФИКИ С ФИКСOМ КЭША -->
+    <script>
+        // Скрипт плавных анимаций и стилей черно-желтого Safe Car баннера Formula 1
+        document.write('<script src="/static/scAlerts.js?v=' + Date.now() + '"><\/script>');
+        // Главное ультра-плавное JS-ядро обновления турнирной сетки лидеров и ЛК плашки
         document.write('<script src="/static/overlay.js?v=' + Date.now() + '"><\/script>');
     </script>
 </body>
 </html>
+
 
 

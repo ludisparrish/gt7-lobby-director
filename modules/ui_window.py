@@ -5,6 +5,7 @@ import time
 import requests
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QStackedWidget, QSlider
 from PyQt6.QtCore import pyqtSignal, Qt, QUrl
+from PyQt6.QtGui import QIcon
 
 # ИМПОРТИРУЕМ РОДНЫЕ МУЛЬТИМЕДИЙНЫЕ МОДУЛИ И БРАУЗЕРНЫЙ ДВИЖОК CHROMIUM ОТ QT6
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
@@ -24,6 +25,7 @@ CONFIG_FILE = os.path.join(os.path.expanduser("~/Documents"), "gt7_pilot_config.
 class LauncherWindow(QWidget):
     def __init__(self):
         super().__init__()
+        self.setWindowIcon(QIcon("icon.png"))
         self.worker = None
         self.publisher = None
         self.config = {}
@@ -31,8 +33,9 @@ class LauncherWindow(QWidget):
         self.is_sound_testing = False 
         self.lap_manager = BestLapManager()
         
-        self.setWindowTitle("Телеметрия")
+        self.setWindowTitle("НИЦ НАКАКАЛ ЛАИШЕВСКОЙ ХАЗАРИИ")
         self.resize(440, 480)
+        self.setWindowIcon(QIcon("icon.png"))
         self.stacked_layout = QStackedWidget(self)
         self.init_settings_screen()
         self.init_main_screen()
@@ -88,7 +91,6 @@ class LauncherWindow(QWidget):
     def init_main_screen(self):
         screen = QWidget()
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("<h2>🏎️ ТЕЛЕМЕТРИЯ </h2>"))
         self.lbl_pilot_info = QLabel("👤 Пилот: -- | Номер: --")
         layout.addWidget(self.lbl_pilot_info)
         self.lbl_ps_info = QLabel("🎮 IP Консоли: --")
@@ -114,11 +116,6 @@ class LauncherWindow(QWidget):
         self.lbl_telemetry_hud.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.lbl_telemetry_hud)
 
-        # НЕВИДИМОЕ БРАУЗЕРНОЕ УХО (Размер 1x1 пиксель)
-        self.browser = QWebEngineView()
-        self.browser.setFixedSize(1, 1)
-        QWebEngineProfile.defaultProfile().setHttpCacheType(QWebEngineProfile.HttpCacheType.NoCache)
-        layout.addWidget(self.browser)
         
         
         btn_go_settings = QPushButton("⚙️ Изменить параметры пилота / IP")
@@ -134,14 +131,12 @@ class LauncherWindow(QWidget):
         if self.worker and self.worker.isRunning():
             self.worker.stop(); self.worker.wait(); self.worker = None
             if self.publisher: self.publisher.stop(); self.publisher.wait(); self.publisher = None
-            self.stop_any_sound()
             self.browser.setUrl(QUrl("about:blank"))
             self.current_sc_state = "OFF"
             self.btn_action.setText("🏁 ЗАПУСТИТЬ ТРАНСЛЯЦИЮ ТЕЛЕМЕТРИИ")
             self.btn_action.setStyleSheet("background-color: #e31e24; color: white; font-weight: bold; font-size: 14px; padding: 14px; border-radius: 0px;")
             self.lbl_ps_status.setText("⚪ Связь с PS5: Остановлено")
             self.lbl_vps_status.setText("⚪ Связь с VPS в РФ: Ожидание...")
-            self.lbl_sc_hud.setText("RACE CONTROL: NO FLAGS")
             self.lbl_sc_hud.setStyleSheet("background-color: #222; color: #888; font-weight: bold; padding: 8px; font-size: 14px;")
             self.lbl_telemetry_hud.setText("<b>📊 СТАТУС: -- | ПОЗ: -- | КРУГ: --</b>")
         else:
@@ -160,51 +155,18 @@ class LauncherWindow(QWidget):
             self.worker.data_signal.connect(self.update_mini_hud)
             self.worker.start()
             
-            self.browser.setUrl(QUrl(f"{SERVER_URL}/api/data?t={int(time.time() * 1000)}"))
             
             from PyQt6.QtCore import QTimer
-            self.page_refresh_timer = QTimer(self)
-            self.page_refresh_timer.timeout.connect(self.refresh_browser_page)
-            self.page_refresh_timer.start(400)
+
+        
             
             self.btn_action.setText("⏹️ ОСТАНОВИТЬ ТРАНСЛЯЦИЮ ТЕЛЕМЕТРИИ")
             self.btn_action.setStyleSheet("background-color: #222222; color: #ff3333; font-weight: bold; font-size: 14px; padding: 14px; border-radius: 0px;")
 
-    def refresh_browser_page(self):
-        if self.worker and self.worker.isRunning():
-            self.browser.setUrl(QUrl(f"{SERVER_URL}/api/data?t={int(time.time() * 1000)}"))
-            self.browser.page().toPlainText(self.parse_browser_json_response)
 
-    def parse_browser_json_response(self, html_text):
-        if not html_text: return
-        try:
-            server_json = json.loads(html_text)
-            sc_status = server_json.get("sc_status", "OFF")
-            self.process_race_control_audio(sc_status)
-        except:
-            pass
-
-    def process_race_control_audio(self, sc_status):
-        if sc_status == self.current_sc_state: return
-        self.current_sc_state = sc_status
-        
-        if sc_status == "ON":
-            self.lbl_sc_hud.setText("⚠️ VSC ON: СБАВЬТЕ СКОРОСТЬ!")
-            self.lbl_sc_hud.setStyleSheet("background-color: #ffff00; color: #111; font-weight: bold; padding: 8px; font-size: 14px;")
-            
-            # ЖЕСТКИЙ СТАНДАРТ ЛИГИ: Сирена играет ровно 12 секунд
-            self.play_system_sound("sc_on.ogg", duration_seconds=12)
-            
-        elif sc_status == "CLEAR":
-            self.lbl_sc_hud.setText("✅ VSC OFF: ГОНКА ПРОДОЛЖАЕТСЯ")
-            self.lbl_sc_hud.setStyleSheet("background-color: #2b8a3e; color: #fff; font-weight: bold; padding: 8px; font-size: 14px;")
-            self.play_system_sound("sc_off.ogg", duration_seconds=12)
-            
-            # ЖЕСТКИЙ СТАНДАРТ ЛИГИ: Зеленый флаг играет ровно 9 секунд
-        else:
             self.lbl_sc_hud.setText("RACE CONTROL: NO FLAGS")
             self.lbl_sc_hud.setStyleSheet("background-color: #222; color: #888; font-weight: bold; padding: 8px; font-size: 14px;")
-            self.stop_any_sound()
+        
 
     def update_mini_hud(self, data):
         state = data.get("pit_state", 2)

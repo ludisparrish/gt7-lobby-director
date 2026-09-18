@@ -1,0 +1,105 @@
+/* ====================================================================
+   📱 SRO GT7 MARSHAL PANEL — VERTICAL FLEX TOUCH INTERFACE (70/30)
+   ==================================================================== */
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #0a0a0a;
+    font-family: 'Arial Black', sans-serif;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Главный вертикальный флекс-контейнер на весь экран смартфона */
+.vsc-mobile-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+/* 🟨 ВЕРХНЯЯ ЧАСТЬ (70%): ОГРОМНАЯ ТАЧ-КНОПКА СТАРТА ИНЦИДЕНТА */
+.vsc-touch-section {
+    height: 70%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+.btn-giant-trigger {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Arial Black', sans-serif;
+    font-size: 32px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    
+    /* Исходное боевое состояние: Сочный гоночный желтый FIA цвет */
+    background: #ffcc00;
+    color: #000000;
+    
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Эффект нажатия пальцем на смартфоне */
+.btn-giant-trigger:active:not(:disabled) {
+    transform: scale(0.98);
+    background: #cca300;
+}
+
+/* 🔒 ЖЕСТКИЙ ЗАМOК БЛOКИРOВКИ: Становится серой и больше нажать нельзя! */
+.btn-giant-trigger:disabled {
+    background: #333333 !important;
+    color: #666666 !important;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* 📟 НИЖНЯЯ ЧАСТЬ (30%): ИНФО-ЭКРАН СТАТУСА МОСТИКА */
+.vsc-info-section {
+    height: 30%;
+    width: 100%;
+    background: #151515;
+    border-top: 3px solid #222222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 15px;
+    text-align: center;
+}
+
+.info-title {
+    font-size: 11px;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.info-status-value {
+    font-size: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #00ff00; /* По дефолту трек чист */
+    transition: color 0.3s ease;
+}
+
+/* Динамические сокет-цвета для нижнего инфо-экрана */
+.status-alert-active { color: #ffcc00 !important; text-shadow: 0 0 10px rgba(255,204,0,0.3); }
+.status-alert-ending { color: #00ff00 !important; text-shadow: 0 0 10px rgba(0,255,0,0.3); }
+.status-alert-clear { color: #ffffff !important; }

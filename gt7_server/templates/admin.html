@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>ФАЛ КОНТРОЛЬ by НИЦ НАКАКАЛ</title>
+    <script>
+        document.write('<link rel="stylesheet" href="/static/admin.css?v=' + Date.now() + '">');
+    </script>
+</head>
+<body>
+
+    <!-- 🎛️ ЛЕВЫЙ БЛОК: СУДЕЙСКОЕ УПРАВЛЕНИЕ -->
+    <div class="admin-left-panel">
+        <h2>Управление Сессией SRO</h2>
+        
+        <div class="admin-block">
+            <div class="form-group">
+                <label>Название гоночной трассы</label>
+                <input type="text" id="input-track" value="RED BULL">
+            </div>
+            <div class="form-group">
+                <label>Общее количество кругов</label>
+                <input type="number" id="input-total-laps" value="10">
+            </div>
+            <button class="btn-act btn-save" onclick="saveConfig()">💾 Применить параметры</button>
+        </div>
+
+        <!-- 🔥 ТВОИ ВЕРНУВШИЕСЯ КОРОЛЕВСКИЕ КНОПКИ РЕЖИМОВ СЕССИИ -->
+        <h2>Режим сессии</h2>
+        <div class="admin-block">
+            <div class="btn-row">
+                <button class="btn-act btn-practice" onclick="sendModeSocket('PRACTICE')">Практика</button>
+                <button class="btn-act btn-quali" onclick="sendModeSocket('QUALI')">Квалификация</button>
+                <button class="btn-act btn-race" onclick="sendModeSocket('RACE')">Гонка</button>
+            </div>
+        </div>
+
+        <h2>Safety Car Модуль</h2>
+        <div class="admin-block">
+            <div class="btn-row" style="flex-direction: column; gap: 12px;">
+                <button class="btn-act btn-vsc-on" onclick="sendScSocket('VSC ON')">🟪 VSC ON</button>
+                <button class="btn-act btn-vsc-off" onclick="sendScSocket('VSC OFF')">🟩 VSC OFF</button>
+                <button class="btn-act btn-alert-stop" onclick="sendScSocket('CLEAR ALERT')">🛑 Остановить оповещение</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-right-panel">
+        <iframe src="/overlay" class="overlay-preview-frame" id="overlay-frame"></iframe>
+    </div>
+
+    <!-- ВШИВАЕМ КЛИЕНТСКИЙ СКРИПТ SOCKET.IO -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io(); // Открываем живой канал связи с бэкендом VPS
+
+        async function saveConfig() {
+            const track = document.getElementById('input-track').value;
+            const Laps = parseInt(document.getElementById('input-total-laps').value) || 10;
+            await fetch('/api/admin/config', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ track_name: track, total_laps: Laps })
+            });
+            // Принудительно заставим оверлеи обновить название трассы из базы
+            socket.emit('admin-mode-command', 'REFRESH_TRACK');
+        }
+
+        // 🔥 КЛИК СМЕНЫ РЕЖИМА СЕССИИ: Пушит в HTTP (для базы) и сразу транслирует в сокет за 0мс!
+        async function sendModeSocket(mode) {
+            // Тихо пишем в базу на сервере
+            await fetch('/api/admin/mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_mode: mode })
+            });
+            // Молниеносно пинаем сокет для оверлея OBS
+            socket.emit('admin-mode-command', mode);
+        }
+
+        // КЛИК СЕЙФТИ-КАРА
+        function sendScSocket(status) {
+            socket.emit('admin-sc-command', status);
+        }
+    </script>
+</body>
+</html>
+
+

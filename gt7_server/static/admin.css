@@ -1,0 +1,138 @@
+/* ==========================================
+   🏎️ SRO GT7 RACE CONTROL — ADMIN PANEL STYLES
+   ========================================== */
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #121212;
+    font-family: 'Arial Black', sans-serif;
+    color: #ffffff;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* 🧱 РАЗДЕЛЕНИЕ НА ДВА КУЛЬТОВЫХ БЛОКА */
+.admin-left-panel {
+    width: 40%;
+    background: #1a1a1a;
+    border-right: 3px solid #333333;
+    padding: 25px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.admin-right-panel {
+    width: 60%;
+    background: #000000; /* Черная подложка для имитации экрана стрима */
+    position: relative;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Встраиваемый живой оверлей в правом блоке */
+.overlay-preview-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+}
+
+h2 {
+    font-size: 20px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e31e24;
+    padding-bottom: 8px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+}
+
+/* 📝 ПОЛЯ ВВОДА ДАННЫХ СЕССИИ */
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    font-size: 12px;
+    color: #aaaaaa;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+input[type="text"], input[type="number"] {
+    background: #252525;
+    border: 1px solid #444444;
+    padding: 10px 15px;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus, input[type="number"]:focus {
+    border-color: #e31e24;
+}
+
+/* 🔘 СЕТКА КНОПОК */
+.admin-block {
+    background: #222222;
+    border: 1px solid #333333;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 25px;
+}
+
+.btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-act {
+    flex-grow: 1;
+    padding: 12px;
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #ffffff;
+    background: #333333;
+    border: 1px solid #555555;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    letter-spacing: 0.5px;
+}
+
+.btn-act:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Специфические цвета кнопок управления гонкой */
+.btn-practice:hover { background: #555555; border-color: #888888; }
+.btn-quali:hover { background: #ff9900; border-color: #ff9900; color: #000000; }
+.btn-race:hover { background: #e31e24; border-color: #e31e24; }
+
+/* Кнопки модуля SAFETY CAR */
+.btn-vsc-on { background: #4b0082; border-color: #9400d3; }
+.btn-vsc-on:hover { background: #9400d3; box-shadow: 0 0 10px rgba(148,0,211,0.5); }
+
+.btn-vsc-off { background: #006400; border-color: #00ff00; }
+.btn-vsc-off:hover { background: #00ff00; color: #000000; box-shadow: 0 0 10px rgba(0,255,0,0.5); }
+
+.btn-alert-stop { background: #8b0000; border-color: #ff0000; }
+.btn-alert-stop:hover { background: #ff0000; box-shadow: 0 0 10px rgba(255,0,0,0.5); }
+
+.btn-save {
+    width: 100%;
+    background: #e31e24;
+    border-color: #e31e24;
+    margin-top: 10px;
+}
